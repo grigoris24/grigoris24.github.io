@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-// import MyName from './Components/Myame';
+import MyName from './Components/MyName';
+import Projects from "./Components/Projects";
 
 const getRandomColor = () => {
   const letters = '0123456789ABCDEF';
@@ -13,18 +14,17 @@ const getRandomColor = () => {
 
 function App() {
   const [balls, setBalls] = useState([]);
+  const [visible, setVisible] = useState(false);
 
   const randomNumber = (min, max) => Math.random() * (max - min) + min;
 
-  
-
   const generateBalls = () => {
     const newBalls = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 20; i++) {
       newBalls.push({
         id: i,
         size: randomNumber(30, 100),
-        left: randomNumber(0, window.innerWidth - 100), 
+        left: randomNumber(0, window.innerWidth - 100),
         top: randomNumber(0, window.innerHeight - 100),
         speedX: randomNumber(1, 5),
         speedY: randomNumber(1, 5),
@@ -46,7 +46,7 @@ function App() {
             : ball.left + ball.speedX < -ball.size
             ? window.innerWidth
             : ball.left + ball.speedX,
-          
+
           top: ball.top + ball.speedY > window.innerHeight
             ? -ball.size
             : ball.top + ball.speedY < -ball.size
@@ -57,6 +57,28 @@ function App() {
     }, 16);
 
     return () => clearInterval(interval);
+  }, []);
+
+  const handleScroll = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        setVisible(true); 
+        observer.unobserve(entry.target);
+      }
+    });
+  };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(handleScroll, {
+      threshold: 0.1,
+    });
+
+    const target = document.querySelector('.fade-in-element');
+    if (target) observer.observe(target); 
+
+    return () => {
+      if (target) observer.unobserve(target); 
+    };
   }, []);
 
   return (
@@ -74,7 +96,12 @@ function App() {
           }}
         ></div>
       ))}
-      {/* <MyName /> */}
+      <div
+        className={`fade-in-element ${visible ? 'fade-in' : ''}`} 
+      >
+        <MyName />
+      </div>
+      <Projects />
     </div>
   );
 }
